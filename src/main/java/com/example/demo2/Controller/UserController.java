@@ -4,6 +4,7 @@ import com.example.demo2.Service.UserService;
 import com.example.demo2.dto.ResponseDTO;
 import com.example.demo2.dto.UserDTO;
 import com.example.demo2.model.UserEntity;
+import com.example.demo2.security.TokenProvider;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.catalina.User;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,6 +21,9 @@ public class UserController {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private TokenProvider tokenProvider;
 
     @PostMapping("/signup")
     public ResponseEntity<?> registerUser(@RequestBody UserDTO userDTO) {
@@ -51,20 +55,37 @@ public class UserController {
                 userDTO.getEmail(),
                 userDTO.getPassword());
 
+        //JWT 관련
         if(user != null) {
+            final String token = tokenProvider.create(user);
             final UserDTO responseUserDTO = UserDTO.builder()
                     .email(user.getEmail())
                     .id(user.getId())
+                    .token(token)
                     .build();
             return ResponseEntity.ok().body(responseUserDTO);
         } else {
             ResponseDTO responseDTO = ResponseDTO.builder()
-                    .error("LOGIN FAILED")
+                    .error("LOGIN FAILD")
                     .build();
             return ResponseEntity
                     .badRequest()
                     .body(responseDTO);
         }
-    }
 
+        //if(user != null) {
+        //    final UserDTO responseUserDTO = UserDTO.builder()
+        //            .email(user.getEmail())
+        //            .id(user.getId())
+        //            .build();
+        //    return ResponseEntity.ok().body(responseUserDTO);
+        //} else {
+        //    ResponseDTO responseDTO = ResponseDTO.builder()
+        //            .error("LOGIN FAILED")
+        //           .build();
+        //    return ResponseEntity
+        //            .badRequest()
+        //           .body(responseDTO);
+        // }
+    }
 }
